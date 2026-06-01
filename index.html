@@ -1,0 +1,1331 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ProAQT 互動練習</title>
+<style>
+ @font-face {
+   font-family: 'Tears';
+   src: url('./tearsfont-1.2.otf') format('opentype');
+   font-weight: normal;
+   font-style: normal;
+ }
+ @font-face {
+   font-family: 'JFLatte';
+   src: url('./jf-jinxuanlatte-2.1-medium.otf') format('opentype');
+   font-weight: normal;
+   font-style: normal;
+ }
+
+ :root {
+ --bg: #f7f5f2;
+ --card: #ffffff;
+ --primary: #7a9e9f;
+ --primary-light: #b2d0d0;
+ --primary-dark: #5a7e80;
+ --accent: #e8a598;
+ --accent-light: #f5d5cf;
+ --text: #2d2d2d;
+ --text-muted: #7a7a7a;
+ --border: #e8e4df;
+ --correct: #8bbf9a;
+ --correct-bg: #edf7f0;
+ --wrong: #d98080;
+ --wrong-bg: #fdf0f0;
+ --shadow: 0 2px 12px rgba(0,0,0,0.07);
+ --radius: 14px;
+ }
+
+ * { box-sizing: border-box; margin: 0; padding: 0; }
+
+ body {
+ font-family: 'JFLatte', 'PingFang TC', 'Microsoft JhengHei', sans-serif;
+ background: var(--bg);
+ color: var(--text);
+ min-height: 100vh;
+ }
+
+ /* ── Header ── */
+ .header {
+ background: var(--card);
+ border-bottom: 1px solid var(--border);
+ padding: 20px 32px;
+ display: flex;
+ align-items: center;
+ justify-content: space-between;
+ position: sticky;
+ top: 0;
+ z-index: 100;
+ box-shadow: 0 1px 8px rgba(0,0,0,0.05);
+ }
+ .header-left h1 {
+ font-size: 1.25rem;
+ font-weight: 700;
+ color: var(--primary-dark);
+ letter-spacing: 0.02em;
+ }
+ .header-left p {
+ font-size: 0.78rem;
+ color: var(--text-muted);
+ margin-top: 2px;
+ }
+ .mode-tabs {
+ display: flex;
+ gap: 6px;
+ background: var(--bg);
+ padding: 4px;
+ border-radius: 10px;
+ }
+ .mode-tab {
+ padding: 7px 16px;
+ border-radius: 8px;
+ border: none;
+ background: transparent;
+ color: var(--text-muted);
+ font-size: 0.83rem;
+ cursor: pointer;
+ transition: all 0.2s;
+ font-weight: 500;
+ }
+ .mode-tab.active {
+ background: var(--card);
+ color: var(--primary-dark);
+ box-shadow: 0 1px 6px rgba(0,0,0,0.1);
+ }
+
+ /* ── Layout ── */
+ .container {
+ max-width: 860px;
+ margin: 0 auto;
+ padding: 32px 20px 60px;
+ }
+
+ /* ── Mode Panels ── */
+ .panel { display: none; }
+ .panel.active { display: block; }
+
+ /* ── Quiz Mode ── */
+ .quiz-progress {
+ display: flex;
+ align-items: center;
+ gap: 14px;
+ margin-bottom: 24px;
+ }
+ .progress-bar-wrap {
+ flex: 1;
+ height: 6px;
+ background: var(--border);
+ border-radius: 99px;
+ overflow: hidden;
+ }
+ .progress-bar-fill {
+ height: 100%;
+ background: linear-gradient(90deg, var(--primary), var(--primary-dark));
+ border-radius: 99px;
+ transition: width 0.4s ease;
+ }
+ .progress-text {
+ font-size: 0.8rem;
+ color: var(--text-muted);
+ white-space: nowrap;
+ }
+ .score-badge {
+ background: var(--primary-light);
+ color: var(--primary-dark);
+ padding: 4px 12px;
+ border-radius: 99px;
+ font-size: 0.78rem;
+ font-weight: 600;
+ }
+
+ .question-card {
+ background: var(--card);
+ border-radius: var(--radius);
+ padding: 28px 32px;
+ box-shadow: var(--shadow);
+ margin-bottom: 16px;
+ }
+ .question-tag {
+ display: inline-block;
+ background: var(--accent-light);
+ color: var(--accent);
+ font-size: 0.72rem;
+ font-weight: 600;
+ padding: 3px 10px;
+ border-radius: 99px;
+ margin-bottom: 12px;
+ letter-spacing: 0.03em;
+ text-transform: uppercase;
+ }
+ .question-text {
+ font-size: 1.05rem;
+ line-height: 1.65;
+ color: var(--text);
+ font-weight: 500;
+ }
+
+ .options-list {
+ display: flex;
+ flex-direction: column;
+ gap: 10px;
+ margin-top: 20px;
+ }
+ .option-btn {
+ background: var(--bg);
+ border: 2px solid var(--border);
+ border-radius: 10px;
+ padding: 13px 18px;
+ text-align: left;
+ font-size: 0.93rem;
+ color: var(--text);
+ cursor: pointer;
+ transition: all 0.18s;
+ line-height: 1.5;
+ }
+ .option-btn:hover:not(.disabled) {
+ border-color: var(--primary);
+ background: #f0f8f8;
+ }
+ .option-btn.selected {
+ border-color: var(--primary);
+ background: #f0f8f8;
+ }
+ .option-btn.correct {
+ border-color: var(--correct);
+ background: var(--correct-bg);
+ color: #2d6b3e;
+ }
+ .option-btn.wrong {
+ border-color: var(--wrong);
+ background: var(--wrong-bg);
+ color: #8b2020;
+ }
+ .option-btn.disabled { cursor: default; }
+ .option-btn.show-correct:not(.wrong) {
+ border-color: var(--correct);
+ background: var(--correct-bg);
+ color: #2d6b3e;
+ }
+
+ .explanation-box {
+ background: #f4f9f6;
+ border-left: 3px solid var(--correct);
+ border-radius: 0 10px 10px 0;
+ padding: 14px 18px;
+ font-size: 0.88rem;
+ color: #3a5a45;
+ line-height: 1.65;
+ margin-top: 14px;
+ display: none;
+ }
+ .explanation-box.show { display: block; }
+ .explanation-box.wrong-exp {
+ background: #fdf4f2;
+ border-color: var(--accent);
+ color: #6b3030;
+ }
+
+ .quiz-actions {
+ display: flex;
+ justify-content: flex-end;
+ gap: 10px;
+ margin-top: 8px;
+ }
+ .btn {
+ padding: 10px 22px;
+ border-radius: 8px;
+ border: none;
+ font-size: 0.88rem;
+ font-weight: 600;
+ cursor: pointer;
+ transition: all 0.18s;
+ }
+ .btn-primary {
+ background: var(--primary-dark);
+ color: #fff;
+ }
+ .btn-primary:hover { background: var(--primary); }
+ .btn-outline {
+ background: transparent;
+ color: var(--primary-dark);
+ border: 2px solid var(--primary-light);
+ }
+ .btn-outline:hover { background: var(--primary-light); }
+
+ /* Category filter */
+ .category-filter {
+ display: flex;
+ flex-wrap: wrap;
+ gap: 8px;
+ margin-bottom: 24px;
+ }
+ .cat-btn {
+ padding: 5px 14px;
+ border-radius: 99px;
+ border: 1.5px solid var(--border);
+ background: var(--card);
+ font-size: 0.78rem;
+ color: var(--text-muted);
+ cursor: pointer;
+ transition: all 0.18s;
+ }
+ .cat-btn.active {
+ border-color: var(--primary);
+ color: var(--primary-dark);
+ background: #f0f8f8;
+ }
+
+ /* ── Result Screen ── */
+ .result-screen {
+ background: var(--card);
+ border-radius: var(--radius);
+ padding: 48px 32px;
+ text-align: center;
+ box-shadow: var(--shadow);
+ }
+ .result-emoji { font-size: 3.5rem; margin-bottom: 12px; }
+ .result-score {
+ font-size: 2.8rem;
+ font-weight: 800;
+ color: var(--primary-dark);
+ line-height: 1;
+ }
+ .result-label { color: var(--text-muted); margin: 8px 0 24px; font-size: 0.95rem; }
+ .result-stats {
+ display: flex;
+ justify-content: center;
+ gap: 32px;
+ margin-bottom: 32px;
+ }
+ .stat-item { text-align: center; }
+ .stat-num { font-size: 1.6rem; font-weight: 700; color: var(--text); }
+ .stat-label { font-size: 0.75rem; color: var(--text-muted); margin-top: 2px; }
+
+ /* ── Flashcard Mode ── */
+ .fc-nav {
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ gap: 20px;
+ margin-bottom: 24px;
+ }
+ .fc-counter {
+ font-size: 0.9rem;
+ color: var(--text-muted);
+ min-width: 80px;
+ text-align: center;
+ }
+ .fc-wrap {
+ perspective: 1200px;
+ margin-bottom: 20px;
+ }
+ .fc-inner {
+ position: relative;
+ width: 100%;
+ min-height: 260px;
+ transform-style: preserve-3d;
+ transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+ cursor: pointer;
+ }
+ .fc-inner.flipped { transform: rotateY(180deg); }
+ .fc-front, .fc-back {
+ position: absolute;
+ top: 0; left: 0; right: 0;
+ min-height: 260px;
+ background: var(--card);
+ border-radius: var(--radius);
+ box-shadow: var(--shadow);
+ backface-visibility: hidden;
+ display: flex;
+ flex-direction: column;
+ align-items: center;
+ justify-content: center;
+ padding: 36px 40px;
+ text-align: left;
+ }
+ .fc-back { transform: rotateY(180deg); background: #f4f9f9; }
+ .fc-label {
+ font-size: 0.72rem;
+ text-transform: uppercase;
+ letter-spacing: 0.08em;
+ color: var(--text-muted);
+ margin-bottom: 16px;
+ align-self: flex-start;
+ }
+ .fc-content {
+ font-size: 1.15rem;
+ line-height: 1.85;
+ color: var(--text);
+ font-weight: 500;
+ width: 100%;
+ font-family: 'Tears', 'PingFang TC', 'Microsoft JhengHei', sans-serif;
+ }
+ .fc-hint {
+ font-size: 0.75rem;
+ color: var(--text-muted);
+ margin-top: 20px;
+ align-self: flex-start;
+ }
+ .fc-category-tags {
+ display: flex;
+ flex-wrap: wrap;
+ gap: 8px;
+ margin-bottom: 20px;
+ justify-content: center;
+ }
+ .fc-cat-btn {
+ padding: 5px 14px;
+ border-radius: 99px;
+ border: 1.5px solid var(--border);
+ background: var(--card);
+ font-size: 0.78rem;
+ color: var(--text-muted);
+ cursor: pointer;
+ transition: all 0.18s;
+ }
+ .fc-cat-btn.active {
+ border-color: var(--primary);
+ color: var(--primary-dark);
+ background: #f0f8f8;
+ }
+ .icon-btn {
+ width: 40px; height: 40px;
+ border-radius: 50%;
+ border: 2px solid var(--border);
+ background: var(--card);
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ cursor: pointer;
+ font-size: 1.1rem;
+ transition: all 0.18s;
+ color: var(--text-muted);
+ }
+ .icon-btn:hover { border-color: var(--primary); color: var(--primary-dark); }
+ .icon-btn:disabled { opacity: 0.3; cursor: default; }
+
+ /* ── Case Study Mode ── */
+ .case-list {
+ display: flex;
+ flex-direction: column;
+ gap: 16px;
+ margin-bottom: 28px;
+ }
+ .case-card {
+ background: var(--card);
+ border-radius: var(--radius);
+ padding: 22px 26px;
+ box-shadow: var(--shadow);
+ cursor: pointer;
+ border: 2px solid transparent;
+ transition: all 0.2s;
+ }
+ .case-card:hover, .case-card.active {
+ border-color: var(--primary);
+ }
+ .case-card-header {
+ display: flex;
+ align-items: flex-start;
+ gap: 14px;
+ }
+ .case-icon {
+ width: 38px; height: 38px;
+ border-radius: 10px;
+ background: var(--accent-light);
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ font-size: 1.1rem;
+ flex-shrink: 0;
+ }
+ .case-title { font-size: 0.95rem; font-weight: 600; color: var(--text); }
+ .case-subtitle { font-size: 0.8rem; color: var(--text-muted); margin-top: 3px; }
+
+ .case-detail {
+ display: none;
+ margin-top: 20px;
+ padding-top: 20px;
+ border-top: 1px solid var(--border);
+ }
+ .case-detail.open { display: block; }
+
+ .vitals-grid {
+ display: grid;
+ grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+ gap: 10px;
+ margin: 16px 0;
+ }
+ .vital-item {
+ background: var(--bg);
+ border-radius: 10px;
+ padding: 10px 14px;
+ text-align: center;
+ }
+ .vital-name { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+ .vital-value { font-size: 1.2rem; font-weight: 700; color: var(--primary-dark); margin-top: 2px; }
+ .vital-unit { font-size: 0.68rem; color: var(--text-muted); }
+
+ .case-question-block {
+ margin-top: 16px;
+ }
+ .case-q {
+ font-size: 0.93rem;
+ font-weight: 600;
+ color: var(--text);
+ margin-bottom: 10px;
+ line-height: 1.5;
+ }
+ .case-answer-reveal {
+ background: var(--bg);
+ border-radius: 10px;
+ padding: 14px 18px;
+ font-size: 0.88rem;
+ color: var(--text-muted);
+ line-height: 1.65;
+ cursor: pointer;
+ border: 1.5px dashed var(--border);
+ transition: all 0.2s;
+ text-align: center;
+ }
+ .case-answer-reveal:hover { border-color: var(--primary); color: var(--text); }
+ .case-answer-reveal.revealed {
+ background: var(--correct-bg);
+ border: 1.5px solid var(--correct);
+ color: #2d5a3d;
+ text-align: left;
+ cursor: default;
+ }
+
+ /* ── Reference Mode ── */
+ .ref-section {
+ margin-bottom: 24px;
+ }
+ .ref-section-title {
+ font-size: 0.75rem;
+ text-transform: uppercase;
+ letter-spacing: 0.1em;
+ color: var(--text-muted);
+ margin-bottom: 12px;
+ font-weight: 600;
+ }
+ .ref-table {
+ background: var(--card);
+ border-radius: var(--radius);
+ overflow: hidden;
+ box-shadow: var(--shadow);
+ width: 100%;
+ border-collapse: collapse;
+ font-size: 0.84rem;
+ }
+ .ref-table th {
+ background: var(--primary-light);
+ color: var(--primary-dark);
+ padding: 10px 16px;
+ text-align: left;
+ font-weight: 600;
+ font-size: 0.78rem;
+ letter-spacing: 0.02em;
+ }
+ .ref-table td {
+ padding: 10px 16px;
+ border-top: 1px solid var(--border);
+ vertical-align: top;
+ line-height: 1.55;
+ color: var(--text);
+ }
+ .ref-table tr:hover td { background: #fafaf9; }
+
+ .ref-card {
+ background: var(--card);
+ border-radius: var(--radius);
+ padding: 20px 24px;
+ box-shadow: var(--shadow);
+ margin-bottom: 12px;
+ }
+ .ref-card-title {
+ font-size: 0.9rem;
+ font-weight: 700;
+ color: var(--primary-dark);
+ margin-bottom: 8px;
+ }
+ .ref-card p, .ref-card li {
+ font-size: 0.85rem;
+ color: var(--text);
+ line-height: 1.7;
+ }
+ .ref-card ul { padding-left: 18px; }
+ .ref-card ul li { margin-bottom: 4px; }
+
+ .maxim-card {
+ background: linear-gradient(135deg, #f0f8f8, #fdf4f2);
+ border-radius: var(--radius);
+ padding: 20px 24px;
+ border-left: 4px solid var(--primary);
+ margin-bottom: 12px;
+ box-shadow: var(--shadow);
+ }
+ .maxim-card p {
+ font-size: 0.95rem;
+ font-weight: 600;
+ color: var(--primary-dark);
+ line-height: 1.6;
+ margin-bottom: 6px;
+ }
+ .maxim-card small {
+ font-size: 0.8rem;
+ color: var(--text-muted);
+ font-weight: normal;
+ }
+
+ .tag { display: inline-block; padding: 2px 8px; border-radius: 5px; font-size: 0.72rem; font-weight: 600; }
+ .tag-blue { background: #dbeefe; color: #2a6aad; }
+ .tag-green { background: #d9f0e4; color: #2a6b44; }
+ .tag-red { background: #fde8e8; color: #a03030; }
+ .tag-yellow { background: #fef3d0; color: #8a6020; }
+
+ /* Scroll fade-in */
+ .fade-in { animation: fadeIn 0.35s ease; }
+ @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+ @media (max-width: 600px) {
+ .header { padding: 14px 16px; flex-direction: column; gap: 12px; align-items: flex-start; }
+ .container { padding: 20px 14px 50px; }
+ .question-card { padding: 20px 18px; }
+ .ref-table { font-size: 0.78rem; }
+ .ref-table th, .ref-table td { padding: 8px 10px; }
+ }
+</style></head>
+<body>
+
+<!-- Header -->
+<div class="header">
+ <div class="header-left">
+ <h1>ProAQT 互動練習</h1>
+ <p>脈搏輪廓分析與血流動力學監測</p></div>
+ <div class="mode-tabs">
+ <button class="mode-tab active" onclick="switchMode('flashcard')">閃卡</button>
+ <button class="mode-tab" onclick="switchMode('quiz')">測驗</button>
+ <button class="mode-tab" onclick="switchMode('case')">臨床情境</button>
+ <button class="mode-tab" onclick="switchMode('ref')">速查表</button></div></div>
+
+<div class="container">
+
+<!-- ══════════════ QUIZ MODE ══════════════ -->
+<div id="panel-quiz" class="panel fade-in">
+
+ <div id="quiz-main">
+ <div class="category-filter" id="category-filter">
+ <button class="cat-btn active" onclick="filterCategory(this, 'all')">全部</button>
+ <button class="cat-btn" onclick="filterCategory(this, 'basics')">基礎概念</button>
+ <button class="cat-btn" onclick="filterCategory(this, 'svv')">SVV 判讀</button>
+ <button class="cat-btn" onclick="filterCategory(this, 'fluid')">容量評估</button>
+ <button class="cat-btn" onclick="filterCategory(this, 'clinical')">臨床決策</button>
+ <button class="cat-btn" onclick="filterCategory(this, 'troubleshoot')">故障排除</button>
+ <button class="cat-btn" onclick="filterCategory(this, 'setup')">操作設定</button></div>
+
+ <div class="quiz-progress">
+ <div class="progress-bar-wrap">
+ <div class="progress-bar-fill" id="progress-fill" style="width:0%"></div></div>
+ <span class="progress-text" id="progress-text">0 / 0</span>
+ <span class="score-badge" id="score-badge">0 答對</span></div>
+
+ <div class="question-card" id="question-card">
+ <span class="question-tag" id="q-tag">基礎概念</span>
+ <div class="question-text" id="q-text"></div>
+ <div class="options-list" id="options-list"></div>
+ <div class="explanation-box" id="explanation-box"></div></div>
+
+ <div class="quiz-actions">
+ <button class="btn btn-outline" id="btn-restart" onclick="restartQuiz()" style="display:none">重新開始</button>
+ <button class="btn btn-primary" id="btn-next" onclick="nextQuestion()" disabled>下一題 →</button></div></div>
+
+ <div class="result-screen" id="result-screen" style="display:none">
+ <div class="result-emoji" id="result-emoji"></div>
+ <div class="result-score" id="result-score"></div>
+ <div class="result-label">答對率</div>
+ <div class="result-stats">
+ <div class="stat-item">
+ <div class="stat-num" id="stat-correct" style="color: var(--correct)">0</div>
+ <div class="stat-label">答對</div></div>
+ <div class="stat-item">
+ <div class="stat-num" id="stat-wrong" style="color: var(--wrong)">0</div>
+ <div class="stat-label">答錯</div></div>
+ <div class="stat-item">
+ <div class="stat-num" id="stat-total">0</div>
+ <div class="stat-label">總題數</div></div></div>
+ <button class="btn btn-primary" onclick="restartQuiz()">再練一次</button></div></div>
+
+<!-- ══════════════ FLASHCARD MODE ══════════════ -->
+<div id="panel-flashcard" class="panel active fade-in">
+
+ <div class="fc-category-tags" id="fc-category-filter">
+ <button class="fc-cat-btn active" onclick="fcFilterCat(this, 'all')">全部</button>
+ <button class="fc-cat-btn" onclick="fcFilterCat(this, 'params')">監測參數</button>
+ <button class="fc-cat-btn" onclick="fcFilterCat(this, 'svv')">SVV 解讀</button>
+ <button class="fc-cat-btn" onclick="fcFilterCat(this, 'fluid')">容量評估</button>
+ <button class="fc-cat-btn" onclick="fcFilterCat(this, 'trouble')">故障排除</button>
+ <button class="fc-cat-btn" onclick="fcFilterCat(this, 'setup')">操作步驟</button></div>
+
+ <div class="fc-nav">
+ <button class="icon-btn" id="fc-prev" onclick="fcPrev()">‹</button>
+ <span class="fc-counter" id="fc-counter">1 / 30</span>
+ <button class="icon-btn" id="fc-next" onclick="fcNext()">›</button></div>
+
+ <div class="fc-wrap" onclick="fcFlip()">
+ <div class="fc-inner" id="fc-inner">
+ <div class="fc-front">
+ <div class="fc-label">問題</div>
+ <div class="fc-content" id="fc-q"></div>
+ <div class="fc-hint">點擊翻牌查看答案</div></div>
+ <div class="fc-back">
+ <div class="fc-label">答案</div>
+ <div class="fc-content" id="fc-a"></div></div></div></div>
+
+ <div style="text-align:center; margin-top: 8px;">
+ <button class="btn btn-outline" onclick="fcShuffle()">洗牌</button></div></div>
+
+<!-- ══════════════ CASE STUDY MODE ══════════════ -->
+<div id="panel-case" class="panel fade-in">
+ <div class="case-list" id="case-list"></div></div>
+
+<!-- ══════════════ REFERENCE MODE ══════════════ -->
+<div id="panel-ref" class="panel fade-in">
+
+ <div class="ref-section">
+ <div class="ref-section-title">核心格言</div>
+ <div class="maxim-card">
+ <p>「先看病人，再看波形，最後才解讀數字。」</p>
+ <small>異常數據評估的第一原則</small></div>
+ <div class="maxim-card">
+ <p>「先排除假的異常，再處理真的休克。」</p>
+ <small>避免根據錯誤監測數據做出錯誤治療</small></div>
+ <div class="maxim-card">
+ <p>「ProAQT 主要看趨勢，不要迷信單點數字。」</p>
+ <small>ProAQT 是趨勢監測工具，不是精確量測儀器</small></div>
+ <div class="maxim-card">
+ <p>「SVV 不是『看到數值高就一定灌水』的指標，需放在整體血流動力學背景中判斷。」</p>
+ <small>SVV 解讀需結合通氣條件、心律、手術類型</small></div></div>
+
+ <div class="ref-section">
+ <div class="ref-section-title">ProAQT 監測參數速覽</div>
+ <table class="ref-table">
+ <thead><tr><th>參數</th><th>說明</th><th>臨床意義</th></tr></thead>
+ <tbody>
+ <tr><td><strong>CO / CI</strong></td><td>心輸出量 / 心臟指數</td><td>整體循環功能評估</td></tr>
+ <tr><td><strong>SV</strong></td><td>每搏輸出量</td><td>前負荷與心肌收縮評估</td></tr>
+ <tr><td><strong>SVV</strong></td><td>每搏輸出量變異</td><td>容量反應性指標（需特定條件）</td></tr>
+ <tr><td><strong>SVR / SVRI</strong></td><td>全身血管阻力</td><td>後負荷評估</td></tr>
+ <tr><td><strong>dPmx</strong></td><td>動脈壓力上升最大速率</td><td>左心室收縮力代替指標（非純收縮力）</td></tr>
+ <tr><td><strong>CPI</strong></td><td>心臟功率指數</td><td>心臟整體做功能力，心因性休克評估</td></tr></tbody></table></div>
+
+ <div class="ref-section">
+ <div class="ref-section-title">SVV 有效解讀的前提條件</div>
+ <div class="ref-card">
+ <div class="ref-card-title">必須滿足以下條件，SVV 才具有臨床參考價值</div>
+ <ul>
+ <li>正規心律（無心律不整）</li>
+ <li>完全控制性機械通氣（無自主呼吸）</li>
+ <li>足夠的潮氣量（建議 ≥8 mL/kg）</li>
+ <li>胸腔未打開</li>
+ <li>無嚴重 RV 功能障礙或肺動脈高壓</li>
+ <li>無腹腔鏡手術（腹壓升高）</li>
+ <li>PEEP 不過高</li></ul></div></div>
+
+ <div class="ref-section">
+ <div class="ref-section-title">MAP 低時的鑑別診斷決策樹</div>
+ <table class="ref-table">
+ <thead><tr><th>ProAQT 模式</th><th>解讀</th><th>處置方向</th></tr></thead>
+ <tbody>
+ <tr><td>MAP↓ CI↓ SVV↑（條件有效）</td><td>前負荷不足</td><td>PLR 或小量 fluid challenge；觀察 SV/CI</td></tr>
+ <tr><td>MAP↓ CI↑/正常 SVR↓</td><td>血管擴張性低血壓</td><td>優先 Vasopressor</td></tr>
+ <tr><td>MAP↓ CI↓ SVV 不高 dPmx↓ CPI↓</td><td>心肌收縮力降低</td><td>Echo/TEE 確認；考慮 inotrope</td></tr>
+ <tr><td>MAP↓ SVR 極高 CI↓</td><td>後負荷過高</td><td>重新評估 vasopressor 劑量</td></tr>
+ <tr><td>SVV↑ 補液後 SV 不升</td><td>非單純前負荷問題</td><td>停止補液；評估 RV、肺壓、收縮力</td></tr></tbody></table></div>
+
+ <div class="ref-section">
+ <div class="ref-section-title">容量反應性評估方法比較</div>
+ <table class="ref-table">
+ <thead><tr><th>方法</th><th>可用於心律不整</th><th>優點</th><th>限制</th></tr></thead>
+ <tbody>
+ <tr><td><strong>PLR</strong></td><td><span class="tag tag-green">可</span></td><td>可逆、不需補液</td><td>需即時 SV/CO 量測；體位限制</td></tr>
+ <tr><td><strong>EEO</strong></td><td><span class="tag tag-green">可</span>（控制通氣）</td><td>快速、可重複</td><td>需深度鎮靜；無自主呼吸</td></tr>
+ <tr><td><strong>Mini-fluid challenge</strong></td><td><span class="tag tag-green">可</span></td><td>直接觀察 SV/CO 變化</td><td>不可逆；液體過多風險</td></tr>
+ <tr><td><strong>SVV / PPV</strong></td><td><span class="tag tag-red">不建議</span></td><td>連續顯示</td><td>RR interval 變異干擾</td></tr></tbody></table></div>
+
+ <div class="ref-section">
+ <div class="ref-section-title">Fast-Flush Test 判讀</div>
+ <table class="ref-table">
+ <thead><tr><th>結果</th><th>問題</th><th>原因</th><th>處置</th></tr></thead>
+ <tbody>
+ <tr><td>1–2 次振盪後快速回正</td><td><span class="tag tag-green">正常</span></td><td>系統可信</td><td>繼續配合臨床判斷</td></tr>
+ <tr><td>振盪 > 3 次</td><td><span class="tag tag-yellow">阻尼不足</span></td><td>氣泡、管路過長、共振</td><td>排除氣泡、縮短管路</td></tr>
+ <tr><td>幾乎無振盪、回升緩慢</td><td><span class="tag tag-red">過度阻尼</span></td><td>氣泡、血塊、管路扭折</td><td>檢查管路、回抽、排氣</td></tr>
+ <tr><td>SBP 高 DBP 低、脈壓寬</td><td><span class="tag tag-yellow">阻尼不足（收縮壓過高）</span></td><td>系統振動</td><td>先校正再解讀</td></tr>
+ <tr><td>SBP 低 DBP 高、脈壓窄</td><td><span class="tag tag-red">過度阻尼（訊號變鈍）</span></td><td>血塊、氣泡、扭折</td><td>檢查並清除</td></tr></tbody></table></div>
+
+ <div class="ref-section">
+ <div class="ref-section-title">ProAQT 設定步驟口訣</div>
+ <div class="ref-card">
+ <div class="ref-card-title">備物完整 → 資料輸入 → 壓力歸零 → CI 校正 → 畫面設定</div>
+ <ul style="margin-top:10px">
+ <li><strong>備物完整</strong>：ProAQT 主機、傳輸線、電源線、A-line 導管、沖洗液（N/S + Heparin 500 IU）、壓力傳感器組</li>
+ <li><strong>資料輸入</strong>：身高、體重、出生日期（DD/MM/YYYY）、性別、成人/小兒</li>
+ <li><strong>壓力歸零</strong>：確認傳感器在腋中線第 4 肋間（靜液軸），開放大氣後按 Zero 鍵</li>
+ <li><strong>CI 校正</strong>：選 ProAQT → Automatic CI → 確認後按 Calibrate 鍵</li>
+ <li><strong>畫面設定</strong>：至少顯示 MAP、CI/CO、SVV、SVR/SVRI、dPmx/CPI</li></ul></div></div>
+
+ <div class="ref-section">
+ <div class="ref-section-title">動脈導管置入部位選擇</div>
+ <table class="ref-table">
+ <thead><tr><th>部位</th><th>第一選擇時機</th><th>優點</th><th>缺點</th></tr></thead>
+ <tbody>
+ <tr><td>橈動脈</td><td>一般成人手術</td><td>淺表、易壓迫、感染風險低</td><td>嚴重休克時可能失敗</td></tr>
+ <tr><td>股動脈</td><td>休克、末梢灌流差</td><td>休克時較易操作，壓力更接近中心</td><td>感染風險較高</td></tr>
+ <tr><td>肱動脈</td><td>橈/股動脈均不可行時</td><td>比橈動脈更接近中心</td><td>靠近神經；無雙側循環保護</td></tr>
+ <tr><td>足背動脈</td><td>上肢無法使用時</td><td>淺表</td><td>低血流時波形差</td></tr></tbody></table></div></div></div><!-- /container -->
+
+<script>
+// ═══════════════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════════════
+
+const quizData = [
+ // ── basics ──
+ { cat: 'basics', tag: '基礎概念',
+ q: 'ProAQT 是什麼類型的監測系統？',
+ opts: ['肺動脈導管（PAC）監測','最小侵入性脈搏輪廓分析血流動力學監測','中心靜脈壓監測系統','心臟超音波監測系統'],
+ ans: 1,
+ exp: 'ProAQT 是基於動脈脈搏輪廓分析的最小侵入性（minimally invasive）血流動力學監測系統，從動脈壓力波形連續估算 CO、CI、SV、SVV 等參數。' },
+
+ { cat: 'basics', tag: '基礎概念',
+ q: 'ProAQT 可以連續估算哪些血流動力學參數？（選最完整的選項）',
+ opts: ['MAP、HR、SpO₂','CO、CI、SV、SVV、SVR/SVRI、dPmx、CPI','CVP、PCWP、EF','BNP、Troponin、Lactate'],
+ ans: 1,
+ exp: 'ProAQT 從動脈壓力波形連續估算 CO（心輸出量）、CI（心臟指數）、SV（每搏輸出量）、SVV（每搏輸出量變異）、SVR/SVRI（全身血管阻力）、dPmx（最大壓力上升速率）、CPI（心臟功率指數）。' },
+
+ { cat: 'basics', tag: '基礎概念',
+ q: 'ProAQT 相對於肺動脈導管（PAC）的定位為何？',
+ opts: ['可以完全取代 PAC','是比 PAC 更準確的量測工具','趨勢監測工具，不能取代 PAC','僅適用於加護病房'],
+ ans: 2,
+ exp: 'ProAQT 是連續趨勢監測工具，不是 PAC 或熱稀釋法的替代品。當需要結構性診斷（心臟超音波、TEE）或精確校正量測時，仍需其他設備。' },
+
+ { cat: 'basics', tag: '基礎概念',
+ q: 'dPmx 代表什麼？它是純粹的心肌收縮力指標嗎？',
+ opts: ['代表舒張壓最大值，是純收縮力指標','代表動脈壓力曲線上升段的最大斜率，不是純收縮力指標','代表脈搏壓，是前負荷指標','代表每搏輸出量變異，與 SVV 相同'],
+ ans: 1,
+ exp: 'dPmx 是動脈壓力曲線上升段的最大斜率，反映左心室收縮力／動脈壓力上升速度，但同時受血管阻力、動脈順應性、前後負荷影響，並非純粹的收縮力指標。' },
+
+ { cat: 'basics', tag: '基礎概念',
+ q: '在脈搏輪廓分析的驗證研究中，ProAQT 在血流動力學不穩定患者的「百分比誤差」大約是多少？',
+ opts: ['<10%','~20%','~45%','~80%'],
+ ans: 2,
+ exp: 'Meta 分析顯示，在血流動力學不穩定患者中，脈搏輪廓分析的百分比誤差（percentage error）約上升至 45%，非校正系統在敗血症休克中可高達 ≥52%，這說明 ProAQT 應作為趨勢工具而非精確量測。' },
+
+ // ── SVV ──
+ { cat: 'svv', tag: 'SVV 判讀',
+ q: '下列哪種情況下，SVV 是有效的容量反應性指標？',
+ opts: ['患者為心房顫動，使用容量控制通氣','完全控制性機械通氣、正規心律、潮氣量足夠','患者有腹腔鏡手術、腹壓升高','患者有嚴重右心衰竭'],
+ ans: 1,
+ exp: 'SVV 有效解讀需要：（1）正規心律、（2）完全控制性機械通氣無自主呼吸、（3）足夠潮氣量。心房顫動、自主呼吸、腹腔鏡手術、嚴重 RV 功能障礙等均會使 SVV 失去解讀意義。' },
+
+ { cat: 'svv', tag: 'SVV 判讀',
+ q: '一般 SVV 判斷容量反應性的閾值（cut-off）大約是多少？',
+ opts: ['3–5%','8–10%','~12%','>20%'],
+ ans: 2,
+ exp: 'Meta 分析顯示 SVV 判斷容量反應性的閾值約為 12%，AUC 約 0.87，優於 CVP。手術患者的閾值相似約 12.1%，但約 57% 患者落在「灰色地帶」需謹慎判讀。' },
+
+ { cat: 'svv', tag: 'SVV 判讀',
+ q: '患者心律為心房顫動（AF），SVV 顯示 18%，應如何解讀？',
+ opts: ['確認患者有容量反應性，立即補液 500 mL','SVV 在 AF 患者中無效，改用 PLR 或 EEO 評估容量反應性','依 SVV 值高低調整 vasopressor','先給予 norepinephrine 再看 SVV 變化'],
+ ans: 1,
+ exp: '心律不整（尤其 AF）時，RR 間期變異本身就會造成每搏輸出量變化，SVV 和 PPV 均不適用。應改用 PLR（被動抬腿試驗）作為首選，或在完全控制性通氣下使用 EEO（呼氣末阻斷試驗）。' },
+
+ { cat: 'svv', tag: 'SVV 判讀',
+ q: '下列哪一個情況「不會」讓 SVV 的解讀失效？',
+ opts: ['患者有自主呼吸','開胸手術中','嚴重肺動脈高壓','患者接受完全控制性機械通氣且心律規則'],
+ ans: 3,
+ exp: '完全控制性機械通氣且心律規則，是 SVV 有效解讀的基本條件，並不會讓 SVV 失效。自主呼吸、開胸、嚴重肺動脈高壓都是 SVV 解讀的禁忌情境。' },
+
+ // ── fluid ──
+ { cat: 'fluid', tag: '容量評估',
+ q: '「容量反應性（fluid responsiveness）」的定義是什麼？',
+ opts: ['給液後血壓上升','前負荷挑戰後，SV 或 CO 增加 ~10–15%','CVP 下降超過 5 mmHg','尿量增加超過 0.5 mL/kg/hr'],
+ ans: 1,
+ exp: '容量反應性的定義：給予前負荷挑戰後，SV 或 CO 增加約 10–15%。這意味著心臟仍在 Frank-Starling 曲線的陡峭段，具有前負荷可提升的空間。' },
+
+ { cat: 'fluid', tag: '容量評估',
+ q: '被動抬腿試驗（PLR）的正確操作方式為何？',
+ opts: ['從平躺位置，直接將腿抬高 90°，等待 5 分鐘後量測','從半臥位開始，改為平躺同時抬腿 45°，在 30–60 秒內量測 SV/CO 變化','從坐姿，直接將腿平放，量測心率變化','任何體位都可以，只要抬腿即可'],
+ ans: 1,
+ exp: 'PLR 正確操作：從半臥位（semi-recumbent）開始 → 改為完全平躺同時抬腿至 45° → 在 30–60 秒內量測 SV/CO 的變化。需要即時的 SV 或 CO 量測（如 ProAQT 的 SV trend 或超音波 LVOT VTI）。' },
+
+ { cat: 'fluid', tag: '容量評估',
+ q: '在有心律不整的患者中，評估容量反應性的首選方法為何？',
+ opts: ['SVV','PPV','PLR（被動抬腿試驗）','直接給予 500 mL 補液'],
+ ans: 2,
+ exp: 'PLR 是心律不整患者中評估容量反應性的首選方法，因為它可逆且不需要補液。SVV 和 PPV 在心律不整時均不可信。' },
+
+ { cat: 'fluid', tag: '容量評估',
+ q: '呼氣末阻斷試驗（EEO）中，支持容量反應性的閾值為何？',
+ opts: ['SV 或 CO 增加 ≥1–2%','SV 或 CO 增加 ≥5–6%','SV 或 CO 增加 ≥15%','SV 或 CO 增加 ≥20%'],
+ ans: 1,
+ exp: 'EEO 閾值：SV 或 CO 增加 ≥5–6% 代表有容量反應性。EEO 需要深度鎮靜、完全控制性通氣、無自主呼吸。' },
+
+ { cat: 'fluid', tag: '容量評估',
+ q: 'SVV 偏高，給予小量 fluid challenge 後 SV 並未上升，應如何處置？',
+ opts: ['繼續補液直到 SVV 降低','停止補液，評估 RV 功能、肺動脈壓、心肌收縮力','立即加大 vasopressor 劑量','輸注 colloid 以提升膠體滲透壓'],
+ ans: 1,
+ exp: '若 SVV 高但補液後 SV 不升，表示問題不是單純前負荷不足。應停止盲目補液，評估是否有 RV 功能障礙、肺動脈高壓或心肌收縮力問題，可能需要超音波輔助診斷。' },
+
+ // ── clinical ──
+ { cat: 'clinical', tag: '臨床決策',
+ q: 'ProAQT 顯示：MAP↓、CI↑、SVR↓。最優先的處置方向為何？',
+ opts: ['小量 fluid challenge','優先給予 vasopressor','給予 inotrope','輸血以提升氧氣攜帶量'],
+ ans: 1,
+ exp: 'MAP低 + CI正常/高 + SVR低 = 血管擴張性低血壓（vasodilatory hypotension），常見於敗血症早期。優先使用 vasopressor（如 norepinephrine），而非補液。' },
+
+ { cat: 'clinical', tag: '臨床決策',
+ q: 'ProAQT 顯示：MAP↓、CI↓、dPmx↓、CPI↓、SVV 不高。最可能的問題及優先處置為何？',
+ opts: ['前負荷不足；立即補液','心肌收縮力降低；做超音波/TEE確認，考慮 inotrope','後負荷過高；降低 vasopressor 劑量','心律不整；給予抗心律藥物'],
+ ans: 1,
+ exp: 'MAP低 + CI低 + dPmx/CPI低 + SVV不高 → 強烈暗示心肌收縮力問題（如心因性休克或敗血症心肌病變）。應做超音波/TEE確認左心室功能，考慮 inotrope。不應在未確認的情況下盲目補液。' },
+
+ { cat: 'clinical', tag: '臨床決策',
+ q: '敗血症休克管理的 Salvage、Optimization、Stabilization、De-escalation 四個階段中，動態指標引導補液最主要用於哪個階段？',
+ opts: ['Salvage（搶救期）','Optimization（優化期）','Stabilization（穩定期）','De-escalation（降階期）'],
+ ans: 1,
+ exp: 'Optimization 期是使用動態指標（SVV、PPV、PLR、mini-fluid challenge）引導是否繼續補液的關鍵階段，目標是評估容量反應性後決定是否給予進一步補液。' },
+
+ { cat: 'clinical', tag: '臨床決策',
+ q: 'CI 正常/偏高，但乳酸持續上升、末梢灌流差，最可能的原因為何？',
+ opts: ['監測數值有誤，應重新校正ProAQT','微循環衰竭或感染源未控制，不應追求更高的 CO','前負荷不足，需補液以提升 CI','心肌收縮力不足，需給予 inotrope'],
+ ans: 1,
+ exp: 'CI 正常/高但乳酸上升 → 問題不在巨觀循環而在微循環，或感染源未控制。此時不應「追求更高的 CO」，應檢查血紅素、感染源、氧合情況等。' },
+
+ { cat: 'clinical', tag: '臨床決策',
+ q: '右心衰竭的患者，為什麼不能用 SVV 單獨指引補液？',
+ opts: ['因為 RV 衰竭時 SVV 永遠為 0','額外補液可能加重 RV 擴張，使室間隔偏移，反而降低 LV 輸出','RV 衰竭患者通常不需要任何液體','SVV 在右心衰竭時會持續偏低'],
+ ans: 1,
+ exp: 'RV 衰竭時，額外補液可能加重 RV 擴張 → 室間隔向左偏移 → LV 充填受限 → CO 反而下降。應避免過度補液，優化通氣、避免高 PEEP，必要時考慮 inotrope 或肺血管擴張劑。' },
+
+ // ── troubleshoot ──
+ { cat: 'troubleshoot', tag: '故障排除',
+ q: 'Fast-flush test 顯示振盪超過 3 次，代表什麼問題？應如何處理？',
+ opts: ['過度阻尼；排除血塊並重新整理管路','阻尼不足（under-damping）；排除氣泡、縮短管路','正常範圍；不需處理','傳感器位置過高；將傳感器降低'],
+ ans: 1,
+ exp: 'Fast-flush test 振盪超過 3 次 = under-damped（阻尼不足），常見原因為氣泡、管路過長、系統共振。會導致收縮壓偏高、舒張壓偏低、脈壓寬。應排除管路中氣泡、縮短管路長度。' },
+
+ { cat: 'troubleshoot', tag: '故障排除',
+ q: '動脈波形回升緩慢，Fast-flush test 幾乎無振盪，代表什麼？',
+ opts: ['正常，表示系統良好','阻尼不足（under-damping）；加長管路','過度阻尼（over-damping）；檢查管路是否有血塊、氣泡、扭折','壓力袋充氣不足；調高至 300 mmHg'],
+ ans: 2,
+ exp: '幾乎無振盪、回升緩慢 = over-damped（過度阻尼），常見原因為血塊、氣泡、管路扭折或導管內栓。會導致收縮壓偏低、舒張壓偏高、脈壓窄，進而低估 CO/SV。需檢查管路並清除阻塞。' },
+
+ { cat: 'troubleshoot', tag: '故障排除',
+ q: '異常數據評估的正確流程順序為何？',
+ opts: ['先給予 vasopressor → 再看數字 → 調整治療','先看數字 → 做 fast-flush test → 決定治療','先評估病人臨床狀態 → 檢查波形品質 → fast-flush test → 交叉驗證 → 最後才解讀數字','先重新開機 ProAQT → 重新校正 → 解讀數字'],
+ ans: 2,
+ exp: '正確流程：先看病人（意識、皮膚灌流、尿量、乳酸）→ 檢查動脈波形品質 → Fast-flush test → 與袖帶血壓/超音波交叉驗證 → 確認是否有限制情境 → 最後才做治療決策。' },
+
+ { cat: 'troubleshoot', tag: '故障排除',
+ q: 'ProAQT 在哪種情況下應避免單獨依賴其數據？',
+ opts: ['一般高風險腹腔手術','使用 IABP（主動脈內球囊幫浦）的患者','血壓穩定的擇期手術患者','心律規則且完全機械通氣的患者'],
+ ans: 1,
+ exp: 'IABP 會改變舒張期壓力波形，干擾脈搏輪廓分析演算法，此時 ProAQT 的 CO/CI 數據不可靠，應改用超音波/TEE 或其他監測。' },
+
+ { cat: 'troubleshoot', tag: '故障排除',
+ q: '哪種 ProAQT 限制情境可能導致血流動力學數值嚴重不準確？',
+ opts: ['患者身高體重輸入完整','規則心律且完全機械通氣','嚴重心律不整加上嚴重低血流狀態','高風險非心臟手術'],
+ ans: 2,
+ exp: '嚴重心律不整 + 嚴重低血流狀態 = 雙重限制：SVV/PPV 因心律不整失效，且低血流時訊號品質太差導致演算法誤差。此時應啟動超音波輔助並採用校正系統（如 PiCCO）。' },
+
+ // ── setup ──
+ { cat: 'setup', tag: '操作設定',
+ q: 'ProAQT 歸零（Zero）時，傳感器應置於何處？',
+ opts: ['與鎖骨同高','腋中線第 4 肋間（靜液軸，對應右心房位置）','任何位置均可，只要開放大氣','高於心臟水平 10 cm'],
+ ans: 1,
+ exp: '傳感器歸零時，必須置於靜液軸（phlebostatic axis）= 腋中線第 4 肋間，對應右心房水平，才能獲得準確的壓力基準。' },
+
+ { cat: 'setup', tag: '操作設定',
+ q: 'ProAQT 輸入出生日期的正確格式為何？',
+ opts: ['YYYY-MM-DD','MM/DD/YYYY','DD/MM/YYYY','任何格式均接受'],
+ ans: 2,
+ exp: 'ProAQT 輸入出生日期格式為 DD/MM/YYYY（日/月/年）。格式錯誤可能影響自動校正的計算準確性。' },
+
+ { cat: 'setup', tag: '操作設定',
+ q: 'ProAQT CI 校正完成後，哪個步驟是必須執行的？',
+ opts: ['按下 Reset 鍵重新啟動','按下 Calibrate 鍵確認（無論自動或手動校正）','先關機再開機','關閉 SVV 顯示'],
+ ans: 1,
+ exp: '無論使用自動（Automatic CI）或手動校正，完成設定後必須按下 Calibrate 鍵確認，校正才正式生效。若未按 Calibrate，系統不會採用新的校正值。' },
+
+ { cat: 'setup', tag: '操作設定',
+ q: 'ProAQT 最低限度的畫面顯示，應包含哪些參數？',
+ opts: ['HR、BP、SpO₂','MAP、CI/CO、SVV、SVR/SVRI、dPmx/CPI','CVP、PCWP、SvO₂','CO、SVR、EF'],
+ ans: 1,
+ exp: '基本畫面設定至少應顯示：MAP、CI/CO、SVV、SVR/SVRI、dPmx/CPI，才能做完整的血流動力學評估與鑑別診斷。' },
+
+ { cat: 'setup', tag: '操作設定',
+ q: '每班維護 ProAQT 時，哪些動作是必須執行的？',
+ opts: ['每班重新插入導管','每班歸零、確認傳感器高度、做 fast-flush test、評估末梢灌流','每班更換沖洗液袋','每班更換動脈導管'],
+ ans: 1,
+ exp: '每班維護應包括：重新歸零、確認傳感器高度在靜液軸、執行 fast-flush test、評估動脈導管置入部位、確認末梢肢體灌流，並記錄 ProAQT 數值是否與臨床狀態一致。' },
+];
+
+// ── FLASHCARDS ──
+const flashcards = [
+ { cat: 'params', q: 'CO 與 CI 的差別是什麼？', a: 'CO（心輸出量）= HR × SV，單位 L/min，是絕對值。\nCI（心臟指數）= CO ÷ 體表面積（BSA），單位 L/min/m²，校正了體型差異，更適合比較不同患者。' },
+ { cat: 'params', q: 'SVR 和 SVV 的差別？', a: 'SVR（全身血管阻力）= 後負荷指標，反映動脈張力。\nSVV（每搏輸出量變異）= 容量反應性動態指標，反映每搏輸出量隨呼吸週期的變化幅度。' },
+ { cat: 'params', q: 'CPI（心臟功率指數）的臨床意義？', a: 'CPI = CO × MAP / 451\n代表心臟整體做功能力，結合 CO 與 MAP。\n在心因性休克評估中有參考價值，低 CPI 暗示心臟推動循環的能力不足。' },
+ { cat: 'params', q: 'dPmx 是什麼？有什麼臨床限制？', a: 'dPmx = 動脈壓力曲線上升段的最大斜率（最大壓力上升速率）。\n臨床上作為左心室收縮力的代替指標，但同時受血管阻力、動脈順應性、前後負荷影響，不是純粹的心肌收縮力指標。' },
+ { cat: 'svv', q: 'SVV 有效解讀的四個必要條件？', a: '1. 正規心律（無心律不整）\n2. 完全控制性機械通氣（無自主呼吸）\n3. 足夠的潮氣量（建議 ≥8 mL/kg）\n4. 無造成額外腔內壓變化的情境（如開胸、高 PEEP、腹腔鏡、嚴重 RV 功能障礙）' },
+ { cat: 'svv', q: 'SVV > 12% 但補液後 SV 沒有上升，怎麼解讀？', a: '問題不是單純前負荷不足。\n可能原因：RV 功能障礙、嚴重肺動脈高壓、心肌收縮力問題，或 SVV 解讀本身無效（條件不符）。\n應停止盲目補液，做超音波進一步評估。' },
+ { cat: 'svv', q: '為什麼腹腔鏡手術中 SVV 不可靠？', a: '腹腔鏡手術建立氣腹（CO₂）後腹內壓升高，造成靜脈回流减少和胸腔壓力改變，使 SVV 偏高，但這是腹壓影響而非真正的前負荷不足，因此 SVV 會高估容量反應性。' },
+ { cat: 'fluid', q: 'PLR（被動抬腿試驗）的原理？', a: 'PLR 藉由將腿抬高 45°，將下肢血液重力性地轉移回循環中，相當於一次內源性 250–300 mL 的可逆性前負荷挑戰。若 SV/CO 在 30–60 秒內增加 ≥10%，表示有容量反應性。優點：可逆，不需補液。' },
+ { cat: 'fluid', q: 'EEO（呼氣末阻斷試驗）的原理和閾值？', a: '在呼氣末暫停通氣 10–15 秒，阻止胸腔負壓週期，使靜脈回流短暫增加，等同前負荷試驗。若 SV 或 CO 增加 ≥5–6%，支持容量反應性。\n需求：深度鎮靜 + 完全控制性通氣 + 無自主呼吸。' },
+ { cat: 'fluid', q: '心房顫動患者評估容量反應性的首選方法？', a: 'PLR（被動抬腿試驗）是首選。\n需搭配即時 SV/CO 量測（如 ProAQT SV 趨勢或超音波 LVOT VTI）。\nAF 患者 SV/CO 應取 5–10 個心搏的平均值。SVV 和 PPV 均不適用。' },
+ { cat: 'trouble', q: 'Fast-flush test 正常的標準？', a: '1–2 次振盪後快速回到正常基線波形。\n代表壓力傳感器系統的動態特性（阻尼係數）在可接受範圍。' },
+ { cat: 'trouble', q: 'Fast-flush test 振盪 > 3 次代表什麼？如何處理？', a: 'Under-damped（阻尼不足）。\n影響：SBP 偏高、DBP 偏低、脈壓加寬（收縮壓過高）。\n常見原因：管路中有氣泡、管路過長、共振。\n處置：排除氣泡、縮短管路。' },
+ { cat: 'trouble', q: 'Fast-flush test 幾乎無振盪、緩慢回升代表什麼？', a: 'Over-damped（過度阻尼）。\n影響：SBP 偏低、DBP 偏高、脈壓縮窄（訊號被鈍化）。\n常見原因：管路內血塊、氣泡、導管扭折、血栓。\n處置：檢查管路、回抽確認暢通、排氣。' },
+ { cat: 'trouble', q: 'IABP 患者為何不應依賴 ProAQT 數據？', a: 'IABP 在舒張期充氣，改變了舒張期動脈壓力波形。脈搏輪廓分析演算法無法正確解讀被 IABP 修改的波形，導致 CO/CI 計算嚴重失真。應改用超音波/TEE 或其他監測方法。' },
+ { cat: 'trouble', q: 'ProAQT 數據異常時的系統性評估步驟？', a: '1. 評估病人臨床狀態（意識、皮膚、尿量、乳酸）\n2. 檢查動脈波形品質（上升支、重搏切跡、舒張期下降）\n3. 執行 fast-flush test\n4. 與袖帶血壓或超音波交叉驗證\n5. 確認是否有 ProAQT 限制情境\n6. 最後才做治療決策' },
+ { cat: 'setup', q: 'ProAQT 操作五步驟口訣？', a: '備物完整 → 資料輸入 → 壓力歸零 → CI 校正 → 畫面設定\n\n看趨勢，不迷信單點數字。' },
+ { cat: 'setup', q: '傳感器歸零的正確位置？為什麼？', a: '腋中線第 4 肋間（靜液軸），對應右心房位置。\n若傳感器位置過高，量測到的壓力會偏低；位置過低，壓力會偏高。歸零必須在此基準點才能獲得正確的壓力值。' },
+ { cat: 'setup', q: 'ProAQT 每班維護的必要步驟？', a: '1. 重新歸零（zero）\n2. 確認傳感器高度在靜液軸\n3. 執行 fast-flush test\n4. 確認壓力袋充至 300 mmHg\n5. 檢查動脈置入部位是否有腫脹出血\n6. 評估末梢肢體灌流\n7. 確認 ProAQT 數值與臨床狀態一致' },
+ { cat: 'setup', q: 'ProAQT 應在哪些情況下觸發超音波輔助驗證？', a: 'ProAQT 數值與臨床狀態不符、新發心律不整、突然大幅血流動力學變化、開始或大幅調整 vasopressor/inotrope、大量補液或大出血、懷疑 RV 衰竭/肺高壓/心包填塞/瓣膜疾病、使用 IABP、嚴重末梢血管疾病。' },
+ { cat: 'params', q: 'ProAQT 的「趨勢監測」定位是什麼意思？', a: '意思是 ProAQT 的強項在於連續偵測血流動力學參數的「變化方向與趨勢」，而非精確量測每個時間點的絕對數值。百分比誤差約 40–48%，不宜作為絕對數值的精確量測工具，應搭配臨床評估和其他量測（超音波、校正系統）使用。' },
+];
+
+// ── CASES ──
+const cases = [
+ {
+ icon: '',
+ title: '案例一：敗血症休克',
+ subtitle: '65歲男性，腹腔感染，術後 ICU',
+ bg: '65歲男性，因腸道穿孔行緊急剖腹手術後進 ICU，術後仍血壓低，正使用 norepinephrine 0.1 mcg/kg/min。',
+ vitals: [
+ { name: 'MAP', val: '55', unit: 'mmHg' },
+ { name: 'CI', val: '2.8', unit: 'L/min/m²' },
+ { name: 'SVV', val: '18', unit: '%' },
+ { name: 'SVR', val: '650', unit: 'dyn·s/cm⁵' },
+ { name: 'Lactate', val: '4.5', unit: 'mmol/L' },
+ { name: 'HR', val: '105', unit: 'bpm 規則' },
+ ],
+ questions: [
+ {
+ q: '① 根據 ProAQT 數值，最主要的問題是什麼？',
+ a: 'MAP低 + CI尚可（2.8）+ SVV高（18%）+ SVR低（650）\n→ 主要問題是血管張力不足（vasodilatory shock，分布性休克）。CI 未顯著下降，SVR 低提示血管擴張。\n→ 優先考慮增加 vasopressor（norepinephrine），同時評估容量反應性。'
+ },
+ {
+ q: '② SVV 18% 是否代表一定要大量補液？為什麼？',
+ a: 'SVV 18% 提示可能有容量反應性，但不代表一定要大量補液。\n正確做法：\n• 先確認 SVV 解讀條件是否滿足（完全機械通氣、正規心律、足夠潮氣量）\n• 做 PLR 或 small fluid challenge（100–150 mL），觀察 SV/CI 是否真的上升 ≥10%\n• 若上升 → 可能有容量反應性，再評估是否需繼續補液\n• 若不上升 → 停止補液，評估其他問題\n不要「看到高 SVV 就直接灌水」。'
+ },
+ ]
+ },
+ {
+ icon: '',
+ title: '案例二：高風險腹部手術',
+ subtitle: '70歲女性，胰十二指腸切除術中',
+ bg: '70歲女性，因胰頭癌接受胰十二指腸切除術（Whipple），術中出血 600 mL，麻醉科護理師發現血壓下降。完全機械通氣，心律規則。',
+ vitals: [
+ { name: 'MAP', val: '60', unit: 'mmHg' },
+ { name: 'CI', val: '2.0', unit: 'L/min/m²' },
+ { name: 'SVV', val: '16', unit: '%' },
+ { name: 'SVR', val: '900', unit: 'dyn·s/cm⁵' },
+ { name: 'HR', val: '92', unit: 'bpm 規則' },
+ { name: 'EBL', val: '600', unit: 'mL' },
+ ],
+ questions: [
+ {
+ q: '① SVV 解讀條件是否滿足？此時如何決策？',
+ a: '解讀條件：完全機械通氣 、正規心律 → SVV 16% 在此情境下可參考。\n\n決策流程（Goal-Directed Hemodynamic Therapy）：\n→ SVV 16% 提示可能有容量反應性\n→ 給予 small fluid challenge（200–250 mL）\n→ 觀察 SV/CI 是否上升 ≥10%（ProAQT 即時趨勢）\n→ 若 SV 上升 → 可考慮繼續補液\n→ 若 SV 不升 → 停止補液，評估 vasopressor 需求或心肌功能'
+ },
+ {
+ q: '② 補液後 SV 未上升，但 MAP 仍低，下一步如何思考？',
+ a: '補液無效 + MAP 仍低：\n• 評估 SVR：900（偏低正常值下緣）→ 考慮增加 vasopressor（norepinephrine）\n• 評估 CI：2.0（偏低）+ 補液無效 → 考慮是否有心肌功能問題\n• 超音波輔助：評估 LV EF、RV 功能、IVC\n• 合理下一步：少量 vasopressor 試驗 + 超音波評估\n• 同時評估出血量、輸血指征（Hb 檢查）'
+ },
+ ]
+ },
+ {
+ icon: '',
+ title: '案例三：數據異常排查',
+ subtitle: '術後患者，CI 突然由 2.8 降至 1.5',
+ bg: '術後 ICU 患者，ProAQT 顯示 CI 突然由 2.8 降至 1.5 L/min/m²。護理師評估病人：意識清楚，皮膚粉紅溫暖，尿量正常，袖帶 MAP 與 A-line MAP 相近。',
+ vitals: [
+ { name: 'ProAQT CI', val: '1.5', unit: 'L/min/m²（新）' },
+ { name: 'Cuff MAP', val: '78', unit: 'mmHg' },
+ { name: 'A-line MAP', val: '76', unit: 'mmHg' },
+ { name: '意識', val: 'GCS 15', unit: '' },
+ { name: '尿量', val: '良好', unit: '' },
+ { name: '皮膚', val: '粉紅溫暖', unit: '' },
+ ],
+ questions: [
+ {
+ q: '① 最優先應做什麼？為什麼不立刻給予 vasopressor？',
+ a: '最優先：評估病人臨床狀態（已確認病人穩定）→ 檢查動脈波形品質。\n\n不立刻給 vasopressor 的原因：\n• 病人臨床表現良好（清醒、皮膚溫暖、尿量正常）\n• 袖帶 MAP 與 A-line MAP 相近 → 血壓真實\n• 數值異常但臨床穩定 → 高度懷疑是「假性異常」（監測問題）\n根據核心原則：先排除假的異常，再處理真的休克。'
+ },
+ {
+ q: '② 如何找出 CI 突然下降的原因？',
+ a: '執行 Fast-flush test：\n→ 結果：幾乎無振盪、回升緩慢 = Over-damped（過度阻尼）\n\n過度阻尼會導致訊號鈍化 → SBP 偏低 → 脈搏輪廓演算法計算出偏低的 SV → CI 假性下降。\n\n處置：\n→ 檢查管路 → 發現小氣泡 + 導管回抽不順\n→ 排除氣泡、重新整理管路\n→ 結果：波形恢復正常，CI 回升至 2.7 L/min/m²\n\n結論：監測系統問題，非真實的心輸出量下降。'
+ },
+ ]
+ },
+ {
+ icon: '',
+ title: '案例四：心房顫動患者',
+ subtitle: '術中新發 AF，SVV 顯示 22%',
+ bg: '60歲男性，大腸直腸手術中，突然發生心房顫動（AF），心率 110–130 bpm 不規則。ProAQT 顯示 SVV 22%。外科醫師問：「有沒有容量反應性？要不要補液？」',
+ vitals: [
+ { name: 'MAP', val: '65', unit: 'mmHg' },
+ { name: 'CI', val: '2.3', unit: 'L/min/m²' },
+ { name: 'SVV', val: '22', unit: '%（AF 中）' },
+ { name: 'HR', val: '110–130', unit: 'bpm 不規則' },
+ { name: '通氣', val: '完全機械通氣', unit: '' },
+ ],
+ questions: [
+ {
+ q: '① 此時的 SVV 22% 可以作為補液依據嗎？為什麼？',
+ a: '不可以。\n\n心房顫動時，RR 間期本身就有變異，造成每搏輸出量的變化與呼吸週期前負荷無關。此時 SVV（和 PPV）都是無效的容量反應性指標，22% 的 SVV 不能代表有容量反應性。\n\n用 SVV 決定補液是危險的，因為可能造成不必要的液體過量。'
+ },
+ {
+ q: '② 替代的容量反應性評估方法為何？',
+ a: '首選：PLR（被動抬腿試驗）\n• 從半臥位 → 完全平躺 + 抬腿 45°\n• 在 30–60 秒內，用 ProAQT SV 趨勢（取多個心搏平均值）或超音波 LVOT VTI 量測\n• 若 SV/CO ≥10% 上升 → 有容量反應性\n\n其他選擇：\n• Mini-fluid challenge（100–150 mL，觀察 SV/CI 變化）\n• 注意：AF 時 SV/CO 讀值應取多個心搏平均'
+ },
+ ]
+ },
+];
+
+// ═══════════════════════════════════════════════
+// QUIZ LOGIC
+// ═══════════════════════════════════════════════
+let currentCategory = 'all';
+let filteredQuestions = [];
+let currentIndex = 0;
+let answered = false;
+let correctCount = 0;
+let wrongCount = 0;
+let shuffled = [];
+
+function shuffle(arr) {
+ const a = [...arr];
+ for (let i = a.length - 1; i > 0; i--) {
+ const j = Math.floor(Math.random() * (i + 1));
+ [a[i], a[j]] = [a[j], a[i]];
+ }
+ return a;
+}
+
+function filterCategory(btn, cat) {
+ document.querySelectorAll('#category-filter .cat-btn').forEach(b => b.classList.remove('active'));
+ btn.classList.add('active');
+ currentCategory = cat;
+ restartQuiz();
+}
+
+function restartQuiz() {
+ const pool = currentCategory === 'all' ? quizData : quizData.filter(q => q.cat === currentCategory);
+ shuffled = shuffle(pool);
+ currentIndex = 0;
+ correctCount = 0;
+ wrongCount = 0;
+ answered = false;
+ document.getElementById('result-screen').style.display = 'none';
+ document.getElementById('quiz-main').style.display = 'block';
+ document.getElementById('btn-restart').style.display = 'none';
+ renderQuestion();
+}
+
+function renderQuestion() {
+ if (currentIndex >= shuffled.length) {
+ showResult();
+ return;
+ }
+ const q = shuffled[currentIndex];
+ document.getElementById('q-tag').textContent = q.tag;
+ document.getElementById('q-text').textContent = q.q;
+
+ const exp = document.getElementById('explanation-box');
+ exp.className = 'explanation-box';
+ exp.textContent = '';
+
+ const optsList = document.getElementById('options-list');
+ optsList.innerHTML = '';
+
+ // Shuffle options keeping track of correct answer
+ const indices = shuffle([0,1,2,3]);
+ const newCorrect = indices.indexOf(q.ans);
+
+ indices.forEach((origIdx, displayIdx) => {
+ const btn = document.createElement('button');
+ btn.className = 'option-btn';
+ btn.innerHTML = `<span style="color:var(--text-muted);margin-right:10px;font-weight:600">${String.fromCharCode(65+displayIdx)}.</span>${q.opts[origIdx]}`;
+ btn.onclick = () => selectAnswer(displayIdx, newCorrect, q.exp);
+ optsList.appendChild(btn);
+ });
+
+ answered = false;
+ document.getElementById('btn-next').disabled = true;
+ document.getElementById('btn-next').textContent = currentIndex === shuffled.length - 1 ? '查看結果 →' : '下一題 →';
+
+ const total = shuffled.length;
+ const done = currentIndex;
+ document.getElementById('progress-fill').style.width = `${(done/total)*100}%`;
+ document.getElementById('progress-text').textContent = `${done} / ${total}`;
+ document.getElementById('score-badge').textContent = `${correctCount} 答對`;
+}
+
+function selectAnswer(selected, correct, exp) {
+ if (answered) return;
+ answered = true;
+ const btns = document.querySelectorAll('.option-btn');
+ btns.forEach((btn, i) => {
+ btn.classList.add('disabled');
+ if (i === correct) btn.classList.add('correct');
+ if (i === selected && selected !== correct) btn.classList.add('wrong');
+ });
+
+ const expBox = document.getElementById('explanation-box');
+ expBox.textContent = exp;
+ if (selected === correct) {
+ correctCount++;
+ expBox.className = 'explanation-box show';
+ } else {
+ wrongCount++;
+ expBox.className = 'explanation-box show wrong-exp';
+ }
+
+ document.getElementById('btn-next').disabled = false;
+ document.getElementById('score-badge').textContent = `${correctCount} 答對`;
+}
+
+function nextQuestion() {
+ if (!answered) return;
+ currentIndex++;
+ renderQuestion();
+}
+
+function showResult() {
+ const total = shuffled.length;
+ const pct = Math.round((correctCount / total) * 100);
+ document.getElementById('quiz-main').style.display = 'none';
+ document.getElementById('result-screen').style.display = 'block';
+
+ document.getElementById('result-emoji').style.display = 'none';
+ document.getElementById('result-score').textContent = `${pct}%`;
+ document.getElementById('stat-correct').textContent = correctCount;
+ document.getElementById('stat-wrong').textContent = wrongCount;
+ document.getElementById('stat-total').textContent = total;
+
+ document.getElementById('progress-fill').style.width = '100%';
+ document.getElementById('progress-text').textContent = `${total} / ${total}`;
+}
+
+// ═══════════════════════════════════════════════
+// FLASHCARD LOGIC
+// ═══════════════════════════════════════════════
+let fcFiltered = [...flashcards];
+let fcIndex = 0;
+let fcCurrentCat = 'all';
+
+function fcFilterCat(btn, cat) {
+ document.querySelectorAll('.fc-cat-btn').forEach(b => b.classList.remove('active'));
+ btn.classList.add('active');
+ fcCurrentCat = cat;
+ fcFiltered = cat === 'all' ? [...flashcards] : flashcards.filter(c => c.cat === cat);
+ fcIndex = 0;
+ renderFC();
+}
+
+function renderFC() {
+ const card = fcFiltered[fcIndex];
+ document.getElementById('fc-q').textContent = card.q;
+ document.getElementById('fc-a').innerHTML = card.a.replace(/\n/g, '<br>');
+ document.getElementById('fc-counter').textContent = `${fcIndex + 1} / ${fcFiltered.length}`;
+ document.getElementById('fc-inner').classList.remove('flipped');
+ document.getElementById('fc-prev').disabled = fcIndex === 0;
+ document.getElementById('fc-next').disabled = fcIndex === fcFiltered.length - 1;
+}
+
+function fcFlip() {
+ document.getElementById('fc-inner').classList.toggle('flipped');
+}
+
+function fcPrev() {
+ if (fcIndex > 0) { fcIndex--; renderFC(); }
+}
+
+function fcNext() {
+ if (fcIndex < fcFiltered.length - 1) { fcIndex++; renderFC(); }
+}
+
+function fcShuffle() {
+ fcFiltered = shuffle(fcFiltered);
+ fcIndex = 0;
+ renderFC();
+}
+
+// ═══════════════════════════════════════════════
+// CASE LOGIC
+// ═══════════════════════════════════════════════
+function buildCases() {
+ const container = document.getElementById('case-list');
+ cases.forEach((c, ci) => {
+ const card = document.createElement('div');
+ card.className = 'case-card';
+ card.innerHTML = `
+ <div class="case-card-header" onclick="toggleCase(${ci})">
+ <div class="case-icon" style="font-size:0.85rem;font-weight:700;color:var(--accent);">0${ci+1}</div>
+ <div>
+ <div class="case-title">${c.title}</div>
+ <div class="case-subtitle">${c.subtitle}</div></div></div>
+ <div class="case-detail" id="case-detail-${ci}">
+ <p style="font-size:0.88rem;color:var(--text);line-height:1.7;margin-bottom:14px">${c.bg}</p>
+ <div class="vitals-grid">
+ ${c.vitals.map(v => `
+ <div class="vital-item">
+ <div class="vital-name">${v.name}</div>
+ <div class="vital-value">${v.val}</div>
+ <div class="vital-unit">${v.unit}</div></div>`).join('')}
+ </div>
+ ${c.questions.map((qobj, qi) => `
+ <div class="case-question-block">
+ <div class="case-q">${qobj.q}</div>
+ <div class="case-answer-reveal" id="case-ans-${ci}-${qi}" onclick="revealAnswer(${ci},${qi})">
+ 點擊顯示分析與建議處置
+ </div></div>
+ `).join('')}
+ </div>
+ `;
+ container.appendChild(card);
+ });
+}
+
+function toggleCase(ci) {
+ const detail = document.getElementById(`case-detail-${ci}`);
+ detail.classList.toggle('open');
+}
+
+function revealAnswer(ci, qi) {
+ const el = document.getElementById(`case-ans-${ci}-${qi}`);
+ if (el.classList.contains('revealed')) return;
+ el.classList.add('revealed');
+ el.innerHTML = cases[ci].questions[qi].a.replace(/\n/g, '<br>');
+}
+
+// ═══════════════════════════════════════════════
+// MODE SWITCH
+// ═══════════════════════════════════════════════
+function switchMode(mode) {
+ document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+ document.querySelectorAll('.mode-tab').forEach(t => t.classList.remove('active'));
+ document.getElementById(`panel-${mode}`).classList.add('active');
+ event.currentTarget.classList.add('active');
+}
+
+// ═══════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════
+restartQuiz();
+renderFC();
+buildCases();
+</script></body></html>
