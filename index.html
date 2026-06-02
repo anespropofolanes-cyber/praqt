@@ -13,16 +13,18 @@
  }
 
  :root {
- --bg: #f7f5f2;
+ --bg: #f6f3f0;
  --card: #ffffff;
- --primary: #7a9e9f;
- --primary-light: #b2d0d0;
- --primary-dark: #5a7e80;
- --accent: #e8a598;
- --accent-light: #f5d5cf;
+ --primary: #b2d6d3;
+ --primary-light: #d6ecea;
+ --primary-dark: #6fa8a4;
+ --accent: #f2dad9;
+ --accent-light: #faf0ef;
+ --warm: #e0b499;
+ --warm-light: #f5e4d4;
  --text: #2d2d2d;
- --text-muted: #7a7a7a;
- --border: #e8e4df;
+ --text-muted: #888;
+ --border: #e6dfd8;
  --correct: #8bbf9a;
  --correct-bg: #edf7f0;
  --wrong: #d98080;
@@ -142,8 +144,8 @@
  }
  .question-tag {
  display: inline-block;
- background: var(--accent-light);
- color: var(--accent);
+ background: var(--warm-light);
+ color: var(--warm);
  font-size: 0.72rem;
  font-weight: 600;
  padding: 3px 10px;
@@ -179,11 +181,11 @@
  }
  .option-btn:hover:not(.disabled) {
  border-color: var(--primary);
- background: #f0f8f8;
+ background: #eaf5f4;
  }
  .option-btn.selected {
  border-color: var(--primary);
- background: #f0f8f8;
+ background: #eaf5f4;
  }
  .option-btn.correct {
  border-color: var(--correct);
@@ -203,7 +205,7 @@
  }
 
  .explanation-box {
- background: #f4f9f6;
+ background: #edf7f0;
  border-left: 3px solid var(--correct);
  border-radius: 0 10px 10px 0;
  padding: 14px 18px;
@@ -267,7 +269,7 @@
  .cat-btn.active {
  border-color: var(--primary);
  color: var(--primary-dark);
- background: #f0f8f8;
+ background: #eaf5f4;
  }
 
  /* ── Result Screen ── */
@@ -297,92 +299,98 @@
  .stat-label { font-size: 0.75rem; color: var(--text-muted); margin-top: 2px; }
 
  /* ── Flashcard Mode ── */
- .fc-nav {
- display: flex;
- align-items: center;
- justify-content: center;
- gap: 20px;
- margin-bottom: 24px;
- }
- .fc-counter {
- font-size: 0.9rem;
- color: var(--text-muted);
- min-width: 80px;
- text-align: center;
- }
- .fc-wrap {
- perspective: 1200px;
- margin-bottom: 20px;
- }
- .fc-inner {
- position: relative;
- width: 100%;
- min-height: 260px;
- transform-style: preserve-3d;
- transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
- cursor: pointer;
- }
- .fc-inner.flipped { transform: rotateY(180deg); }
- .fc-front, .fc-back {
- position: absolute;
- top: 0; left: 0; right: 0;
- min-height: 260px;
- background: var(--card);
- border-radius: var(--radius);
- box-shadow: var(--shadow);
- backface-visibility: hidden;
- display: flex;
- flex-direction: column;
- align-items: center;
- justify-content: center;
- padding: 36px 40px;
- text-align: left;
- }
- .fc-back { transform: rotateY(180deg); background: #f4f9f9; }
- .fc-label {
- font-size: 0.72rem;
- text-transform: uppercase;
- letter-spacing: 0.08em;
- color: var(--text-muted);
- margin-bottom: 16px;
- align-self: flex-start;
- }
- .fc-content {
- font-size: 1.15rem;
- line-height: 1.85;
- color: var(--text);
- font-weight: 500;
- width: 100%;
- font-family: 'Tears', 'PingFang TC', 'Microsoft JhengHei', sans-serif;
- }
- .fc-hint {
- font-size: 0.75rem;
- color: var(--text-muted);
- margin-top: 20px;
- align-self: flex-start;
- }
  .fc-category-tags {
- display: flex;
- flex-wrap: wrap;
- gap: 8px;
- margin-bottom: 20px;
- justify-content: center;
+   display: flex;
+   flex-wrap: wrap;
+   gap: 8px;
+   margin-bottom: 24px;
  }
  .fc-cat-btn {
- padding: 5px 14px;
- border-radius: 99px;
- border: 1.5px solid var(--border);
- background: var(--card);
- font-size: 0.78rem;
- color: var(--text-muted);
- cursor: pointer;
- transition: all 0.18s;
+   padding: 5px 16px;
+   border-radius: 99px;
+   border: 1.5px solid var(--border);
+   background: var(--card);
+   font-size: 0.78rem;
+   color: var(--text-muted);
+   cursor: pointer;
+   transition: all 0.18s;
  }
  .fc-cat-btn.active {
- border-color: var(--primary);
- color: var(--primary-dark);
- background: #f0f8f8;
+   border-color: var(--primary-dark);
+   color: var(--primary-dark);
+   background: var(--primary-light);
  }
+ .fc-card {
+   background: var(--card);
+   border-radius: var(--radius);
+   box-shadow: var(--shadow);
+   overflow: hidden;
+   margin-bottom: 16px;
+ }
+ .fc-question-block {
+   padding: 28px 32px 24px;
+   border-bottom: 1px solid var(--border);
+ }
+ .fc-label {
+   font-size: 0.68rem;
+   text-transform: uppercase;
+   letter-spacing: 0.1em;
+   font-weight: 700;
+   color: var(--primary-dark);
+   margin-bottom: 12px;
+ }
+ .fc-q-text {
+   font-size: 1.1rem;
+   line-height: 1.75;
+   color: var(--text);
+   font-family: 'Tears', 'PingFang TC', 'Microsoft JhengHei', sans-serif;
+   font-weight: 500;
+ }
+ .fc-answer-block {
+   padding: 24px 32px;
+   background: #faf8f6;
+   display: none;
+ }
+ .fc-answer-block.visible { display: block; }
+ .fc-ans-label {
+   font-size: 0.68rem;
+   text-transform: uppercase;
+   letter-spacing: 0.1em;
+   font-weight: 700;
+   color: var(--warm);
+   margin-bottom: 12px;
+ }
+ .fc-a-text {
+   font-size: 1rem;
+   line-height: 1.85;
+   color: var(--text);
+   font-family: 'Tears', 'PingFang TC', 'Microsoft JhengHei', sans-serif;
+ }
+ .fc-reveal-btn {
+   width: 100%;
+   padding: 14px;
+   background: transparent;
+   border: none;
+   border-top: 1px dashed var(--border);
+   font-size: 0.82rem;
+   color: var(--text-muted);
+   cursor: pointer;
+   transition: all 0.18s;
+   letter-spacing: 0.03em;
+ }
+ .fc-reveal-btn:hover { background: var(--accent-light); color: var(--text); }
+ .fc-reveal-btn.hidden { display: none; }
+ .fc-nav {
+   display: flex;
+   align-items: center;
+   justify-content: space-between;
+   margin-top: 4px;
+ }
+ .fc-counter {
+   font-size: 0.82rem;
+   color: var(--text-muted);
+ }
+ .fc-nav-btns { display: flex; gap: 8px; }
  .icon-btn {
  width: 40px; height: 40px;
  border-radius: 50%;
@@ -426,7 +434,7 @@
  .case-icon {
  width: 38px; height: 38px;
  border-radius: 10px;
- background: var(--accent-light);
+ background: var(--warm-light);
  display: flex;
  align-items: center;
  justify-content: center;
@@ -552,7 +560,7 @@
  .ref-card ul li { margin-bottom: 4px; }
 
  .maxim-card {
- background: linear-gradient(135deg, #f0f8f8, #fdf4f2);
+ background: linear-gradient(135deg, var(--primary-light), var(--accent-light));
  border-radius: var(--radius);
  padding: 20px 24px;
  border-left: 4px solid var(--primary);
@@ -573,10 +581,10 @@
  }
 
  .tag { display: inline-block; padding: 2px 8px; border-radius: 5px; font-size: 0.72rem; font-weight: 600; }
- .tag-blue { background: #dbeefe; color: #2a6aad; }
- .tag-green { background: #d9f0e4; color: #2a6b44; }
- .tag-red { background: #fde8e8; color: #a03030; }
- .tag-yellow { background: #fef3d0; color: #8a6020; }
+ .tag-blue { background: var(--primary-light); color: var(--primary-dark); }
+ .tag-green { background: var(--primary-light); color: var(--primary-dark); }
+ .tag-red { background: var(--accent-light); color: #a03030; }
+ .tag-yellow { background: var(--warm-light); color: #7a5020; }
 
  /* Scroll fade-in */
  .fade-in { animation: fadeIn 0.35s ease; }
@@ -654,30 +662,36 @@
 <div id="panel-flashcard" class="panel active fade-in">
 
  <div class="fc-category-tags" id="fc-category-filter">
- <button class="fc-cat-btn active" onclick="fcFilterCat(this, 'all')">全部</button>
- <button class="fc-cat-btn" onclick="fcFilterCat(this, 'params')">監測參數</button>
- <button class="fc-cat-btn" onclick="fcFilterCat(this, 'svv')">SVV 解讀</button>
- <button class="fc-cat-btn" onclick="fcFilterCat(this, 'fluid')">容量評估</button>
- <button class="fc-cat-btn" onclick="fcFilterCat(this, 'trouble')">故障排除</button>
- <button class="fc-cat-btn" onclick="fcFilterCat(this, 'setup')">操作步驟</button></div>
+   <button class="fc-cat-btn active" onclick="fcFilterCat(this, 'all')">全部</button>
+   <button class="fc-cat-btn" onclick="fcFilterCat(this, 'params')">監測參數</button>
+   <button class="fc-cat-btn" onclick="fcFilterCat(this, 'svv')">SVV 解讀</button>
+   <button class="fc-cat-btn" onclick="fcFilterCat(this, 'fluid')">容量評估</button>
+   <button class="fc-cat-btn" onclick="fcFilterCat(this, 'trouble')">故障排除</button>
+   <button class="fc-cat-btn" onclick="fcFilterCat(this, 'setup')">操作步驟</button>
+ </div>
+
+ <div class="fc-card">
+   <div class="fc-question-block">
+     <div class="fc-label">問題</div>
+     <div class="fc-q-text" id="fc-q"></div>
+   </div>
+   <button class="fc-reveal-btn" id="fc-reveal-btn" onclick="fcReveal()">查看答案</button>
+   <div class="fc-answer-block" id="fc-answer-block">
+     <div class="fc-ans-label">答案</div>
+     <div class="fc-a-text" id="fc-a"></div>
+   </div>
+ </div>
 
  <div class="fc-nav">
- <button class="icon-btn" id="fc-prev" onclick="fcPrev()">‹</button>
- <span class="fc-counter" id="fc-counter">1 / 30</span>
- <button class="icon-btn" id="fc-next" onclick="fcNext()">›</button></div>
+   <span class="fc-counter" id="fc-counter">1 / 20</span>
+   <div class="fc-nav-btns">
+     <button class="btn btn-outline" onclick="fcShuffle()">洗牌</button>
+     <button class="btn btn-outline" id="fc-prev" onclick="fcPrev()">‹ 上一張</button>
+     <button class="btn btn-primary" id="fc-next" onclick="fcNext()">下一張 ›</button>
+   </div>
+ </div>
 
- <div class="fc-wrap" onclick="fcFlip()">
- <div class="fc-inner" id="fc-inner">
- <div class="fc-front">
- <div class="fc-label">問題</div>
- <div class="fc-content" id="fc-q"></div>
- <div class="fc-hint">點擊翻牌查看答案</div></div>
- <div class="fc-back">
- <div class="fc-label">答案</div>
- <div class="fc-content" id="fc-a"></div></div></div></div>
-
- <div style="text-align:center; margin-top: 8px;">
- <button class="btn btn-outline" onclick="fcShuffle()">洗牌</button></div></div>
+</div>
 
 <!-- ══════════════ CASE STUDY MODE ══════════════ -->
 <div id="panel-case" class="panel fade-in">
@@ -1235,13 +1249,15 @@ function renderFC() {
  document.getElementById('fc-q').textContent = card.q;
  document.getElementById('fc-a').innerHTML = card.a.replace(/\n/g, '<br>');
  document.getElementById('fc-counter').textContent = `${fcIndex + 1} / ${fcFiltered.length}`;
- document.getElementById('fc-inner').classList.remove('flipped');
+ document.getElementById('fc-answer-block').classList.remove('visible');
+ document.getElementById('fc-reveal-btn').classList.remove('hidden');
  document.getElementById('fc-prev').disabled = fcIndex === 0;
  document.getElementById('fc-next').disabled = fcIndex === fcFiltered.length - 1;
 }
 
-function fcFlip() {
- document.getElementById('fc-inner').classList.toggle('flipped');
+function fcReveal() {
+ document.getElementById('fc-answer-block').classList.add('visible');
+ document.getElementById('fc-reveal-btn').classList.add('hidden');
 }
 
 function fcPrev() {
@@ -1268,7 +1284,7 @@ function buildCases() {
  card.className = 'case-card';
  card.innerHTML = `
  <div class="case-card-header" onclick="toggleCase(${ci})">
- <div class="case-icon" style="font-size:0.85rem;font-weight:700;color:var(--accent);">0${ci+1}</div>
+ <div class="case-icon" style="font-size:0.85rem;font-weight:700;color:var(--warm);">0${ci+1}</div>
  <div>
  <div class="case-title">${c.title}</div>
  <div class="case-subtitle">${c.subtitle}</div></div></div>
